@@ -1,0 +1,28 @@
+{
+  "name": "sparks-system-assignment",
+  "version": "1.0.0",
+  "description": "Sparks System Assignment",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "scss:types": "typed-scss-modules src --watch",
+    "start": "concurrently \"yarn scss:types\" \"yarn dev\""
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "concurrently": "^8.2.2",
+    "sass": "^1.104.1",
+    "typed-scss-modules": "^8.1.1",
+    "typescript": "^5.9.0",
+    "vite": "^8.3.0"
+  }
+}
