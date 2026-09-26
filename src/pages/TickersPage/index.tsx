@@ -1,18 +1,22 @@
-import React from "react";
+import { SimpleGrid } from "@mantine/core";
 import { Ticker } from "../../components/Ticker";
-import { TickerData } from "../../typings/component/Ticker";
 import { TickersPageProps } from "../../typings/page/TickersPage";
-import { fetchTicker, postExecute } from "../../apis/Tickers/apis";
-import { Flex } from "@mantine/core";
 
-export const TickersPage = ({ tickerSymbols }: TickersPageProps) => {
+export const TickersPage = ({
+  tickerSymbols,
+  tickers,
+  onExecute,
+}: TickersPageProps) => {
   return (
-    <Flex gap={"sm"}>
+    <SimpleGrid cols={{ base: 1, sm: 2, lg: 3, xl: 4 }} spacing="md">
       {tickerSymbols.map((ticker) => (
-        <div key={ticker.symbol}>
-          <Ticker onFetch={fetchTicker} onExecute={postExecute} {...ticker} />
-        </div>
+        <Ticker
+          key={ticker.symbol}
+          {...ticker}
+          data={tickers[ticker.symbol]}
+          onExecute={onExecute}
+        />
       ))}
-    </Flex>
+    </SimpleGrid>
   );
 };

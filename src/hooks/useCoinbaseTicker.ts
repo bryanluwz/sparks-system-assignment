@@ -45,6 +45,7 @@ export const useCoinbaseTicker = (symbols: string[]) => {
           bid: Number(message.best_bid),
           ask: Number(message.best_ask),
           provider: "Coinbase",
+          updatedAt: Date.now(),
         },
       }));
     };

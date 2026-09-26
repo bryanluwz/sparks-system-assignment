@@ -8,6 +8,7 @@ export interface TickerData {
   time: string;
   rfq_volume: string;
   provider: string;
+  updatedAt: number;
 }
 
 export type TradeSide = "BUY" | "SELL";
@@ -16,7 +17,7 @@ export interface TickerProps {
   symbol: string;
   title: string;
   fullname: string;
-  onFetch: (symbol: string) => Promise<TickerData>;
+  data?: TickerData;
   onExecute: (
     symbol: string,
     side: TradeSide,

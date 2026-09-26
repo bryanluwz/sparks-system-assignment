@@ -11,26 +11,18 @@ import {
   Text,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import {
-  TickerData,
-  TickerProps,
-  TradeSide,
-} from "../../typings/component/Ticker";
+import { TickerProps, TradeSide } from "../../typings/component/Ticker";
 import styles from "./style.module.scss";
 import { LastUpdatedTimer } from "../LastUpdatedTimer";
-import React, { useCallback, useEffect } from "react";
+import React, { useEffect } from "react";
 
 export const Ticker = ({
   symbol,
   title,
   fullname,
-  onFetch,
+  data,
   onExecute,
 }: TickerProps) => {
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(false);
-  const [lastUpdated, setLastUpdated] = React.useState<string>("");
-  const [data, setData] = React.useState<TickerData>();
   const [now, setNow] = React.useState(Date.now());
 
   const [tradeAmount, setTradeAmount] = React.useState<number | string>("");
@@ -38,6 +30,7 @@ export const Ticker = ({
     null,
   );
 
+  // Used to update the "LIVE / STALE" status over time
   useEffect(() => {
     const intervalId = setInterval(() => {
       setNow(Date.now());
@@ -46,51 +39,23 @@ export const Ticker = ({
     return () => clearInterval(intervalId);
   }, []);
 
-  const fetchTicker = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(false);
-
-      const tickerData = await onFetch(symbol);
-
-      setData(tickerData);
-      setLastUpdated(new Date().toISOString());
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [symbol, onFetch]);
-
   const tickerStatus = React.useMemo(() => {
-    if (loading) {
+    if (!data) {
       return "LOADING";
     }
 
-    if (error) {
-      return "ERROR";
-    }
-
-    if (!lastUpdated) {
+    if (!data.updatedAt) {
       return "STALE";
     }
 
-    const elapsed = Date.now() - new Date(lastUpdated).getTime();
+    const elapsed = now - data.updatedAt;
 
     if (elapsed > 5000) {
       return "STALE";
     }
 
     return "LIVE";
-  }, [loading, error, lastUpdated, now]);
-
-  useEffect(() => {
-    fetchTicker();
-
-    const intervalId = setInterval(fetchTicker, 8000);
-
-    return () => clearInterval(intervalId);
-  }, [fetchTicker]);
+  }, [data, now]);
 
   const tickerTimer = (
     <Badge
@@ -99,14 +64,12 @@ export const Ticker = ({
           ? "green"
           : tickerStatus === "STALE"
             ? "yellow"
-            : tickerStatus === "ERROR"
-              ? "red"
-              : "gray"
+            : "gray"
       }
       variant="light"
     >
       <LastUpdatedTimer
-        time={lastUpdated}
+        time={data?.updatedAt ? new Date(data.updatedAt).toISOString() : ""}
         status={tickerStatus}
         messages={{
           LIVE: "LIVE",
@@ -119,6 +82,7 @@ export const Ticker = ({
   );
 
   const amount = Number(tradeAmount);
+
   const hasValidAmount =
     tradeAmount !== "" && Number.isFinite(amount) && amount > 0;
 
@@ -127,6 +91,8 @@ export const Ticker = ({
       return;
     }
 
+    // BUY executes against ASK
+    // SELL executes against BID
     const price = side === "BUY" ? data.ask : data.bid;
 
     try {
@@ -151,23 +117,19 @@ export const Ticker = ({
     }
   };
 
+  /*
+   * No WebSocket data yet.
+   */
   if (!data) {
     return (
       <Container p={0} className={styles.tickerContainer}>
         <Card withBorder radius="md" p="lg" className={styles.tickerCard}>
           <Stack align="center" justify="center" py="xl">
-            {loading ? (
-              <>
-                <Loader size="sm" />
-                <Text size="sm" c="dimmed">
-                  Loading ticker...
-                </Text>
-              </>
-            ) : (
-              <Text size="sm" c="red">
-                Unable to load ticker.
-              </Text>
-            )}
+            <Loader size="sm" />
+
+            <Text size="sm" c="dimmed">
+              Loading ticker...
+            </Text>
           </Stack>
         </Card>
       </Container>
@@ -208,6 +170,7 @@ export const Ticker = ({
 
           {/* Bid / Ask */}
           <Group grow align="stretch">
+            {/* Bid */}
             <Card withBorder p="md">
               <Stack gap={4}>
                 <Text size="xs" c="dimmed">
@@ -220,6 +183,7 @@ export const Ticker = ({
               </Stack>
             </Card>
 
+            {/* Ask */}
             <Card withBorder p="md">
               <Stack gap={4}>
                 <Text size="xs" c="dimmed">
@@ -267,6 +231,7 @@ export const Ticker = ({
                   <Text size="xs" fw={600}>
                     BUY
                   </Text>
+
                   <Text size="sm" fw={500}>
                     {buyTotal.toFixed(2)}
                   </Text>
@@ -299,6 +264,7 @@ export const Ticker = ({
                   <Text size="xs" fw={600}>
                     SELL
                   </Text>
+
                   <Text size="sm" fw={500}>
                     {sellTotal.toFixed(2)}
                   </Text>
