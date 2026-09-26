@@ -1,6 +1,6 @@
 export interface TickerData {
-  ask: string;
-  bid: string;
+  ask: number;
+  bid: number;
   volume: string;
   trade_id: number;
   price: string;
@@ -25,3 +25,12 @@ export interface TickerProps {
     price: number,
   ) => Promise<void>;
 }
+
+export type TickerSource = "coinbase" | "mock";
+
+export type TickerConfig = {
+  symbol: string;
+  title: string;
+  fullname: string;
+  source: TickerSource;
+};

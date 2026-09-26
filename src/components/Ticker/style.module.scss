@@ -1,6 +1,8 @@
 .tickerContainer {
+  width: 100%;
+
   .tickerCard {
-    width: 350px;
+    width: 100%;
   }
 
   .executionButtonContainer {
@@ -8,5 +10,33 @@
       display: flex;
       align-items: flex-start;
     }
+  }
+}
+
+.priceUp {
+  animation: priceUp 400ms ease-out;
+}
+
+.priceDown {
+  animation: priceDown 400ms ease-out;
+}
+
+@keyframes priceUp {
+  0% {
+    color: var(--mantine-color-green-6);
+  }
+
+  100% {
+    color: inherit;
+  }
+}
+
+@keyframes priceDown {
+  0% {
+    color: var(--mantine-color-red-6);
+  }
+
+  100% {
+    color: inherit;
   }
 }

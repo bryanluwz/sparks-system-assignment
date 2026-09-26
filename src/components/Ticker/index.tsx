@@ -24,13 +24,20 @@ export const Ticker = ({
   onExecute,
 }: TickerProps) => {
   const [now, setNow] = React.useState(Date.now());
-
-  const [tradeAmount, setTradeAmount] = React.useState<number | string>("");
+  const [tradeAmount, setTradeAmount] = React.useState<number | string>(0);
   const [executingSide, setExecutingSide] = React.useState<TradeSide | null>(
     null,
   );
+  const [priceFlash, setPriceFlash] = React.useState<{
+    bid: "up" | "down" | null;
+    ask: "up" | "down" | null;
+  }>({
+    bid: null,
+    ask: null,
+  });
+  const currentBidRef = React.useRef<number>(0);
+  const currentAskRef = React.useRef<number>(0);
 
-  // Used to update the "LIVE / STALE" status over time
   useEffect(() => {
     const intervalId = setInterval(() => {
       setNow(Date.now());
@@ -38,6 +45,45 @@ export const Ticker = ({
 
     return () => clearInterval(intervalId);
   }, []);
+
+  useEffect(() => {
+    if (!data) {
+      return;
+    }
+
+    setPriceFlash((current) => ({
+      bid:
+        data.bid > (currentBidRef.current ?? data.bid)
+          ? "up"
+          : data.bid < (currentBidRef.current ?? data.bid)
+            ? "down"
+            : null,
+      ask:
+        data.ask > (currentAskRef.current ?? data.ask)
+          ? "up"
+          : data.ask < (currentAskRef.current ?? data.ask)
+            ? "down"
+            : null,
+    }));
+
+    currentBidRef.current = data.bid;
+    currentAskRef.current = data.ask;
+  }, [data]);
+
+  useEffect(() => {
+    if (!priceFlash.bid && !priceFlash.ask) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setPriceFlash({
+        bid: null,
+        ask: null,
+      });
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [priceFlash]);
 
   const tickerStatus = React.useMemo(() => {
     if (!data) {
@@ -104,6 +150,7 @@ export const Ticker = ({
         title: "Trade successful",
         message: `${side} ${amount} ${symbol} @ ${price}`,
         color: "green",
+        position: "top-right",
       });
     } catch (error) {
       notifications.show({
@@ -111,15 +158,13 @@ export const Ticker = ({
         message:
           error instanceof Error ? error.message : "Unable to execute trade.",
         color: "red",
+        position: "top-right",
       });
     } finally {
       setExecutingSide(null);
     }
   };
 
-  /*
-   * No WebSocket data yet.
-   */
   if (!data) {
     return (
       <Container p={0} className={styles.tickerContainer}>
@@ -128,7 +173,7 @@ export const Ticker = ({
             <Loader size="sm" />
 
             <Text size="sm" c="dimmed">
-              Loading ticker...
+              Loading ticker {symbol} ...
             </Text>
           </Stack>
         </Card>
@@ -140,7 +185,6 @@ export const Ticker = ({
   const sellPrice = Number(data.bid);
 
   const buyTotal = hasValidAmount ? amount * buyPrice : 0;
-
   const sellTotal = hasValidAmount ? amount * sellPrice : 0;
 
   return (
@@ -177,7 +221,17 @@ export const Ticker = ({
                   BID
                 </Text>
 
-                <Text size="xl" fw={700}>
+                <Text
+                  size="xl"
+                  fw={700}
+                  className={
+                    priceFlash.bid === "up"
+                      ? styles.priceUp
+                      : priceFlash.bid === "down"
+                        ? styles.priceDown
+                        : undefined
+                  }
+                >
                   {data.bid}
                 </Text>
               </Stack>
@@ -190,7 +244,17 @@ export const Ticker = ({
                   ASK
                 </Text>
 
-                <Text size="xl" fw={700}>
+                <Text
+                  size="xl"
+                  fw={700}
+                  className={
+                    priceFlash.ask === "up"
+                      ? styles.priceUp
+                      : priceFlash.ask === "down"
+                        ? styles.priceDown
+                        : undefined
+                  }
+                >
                   {data.ask}
                 </Text>
               </Stack>
@@ -212,39 +276,6 @@ export const Ticker = ({
 
           {/* Execution */}
           <Group grow>
-            {/* BUY */}
-            <Stack
-              gap={4}
-              align="stretch"
-              className={styles.executionButtonContainer}
-            >
-              <Button
-                color="green"
-                size="lg"
-                className={styles.executionButton}
-                fullWidth
-                disabled={!hasValidAmount || executingSide !== null}
-                loading={executingSide === "BUY"}
-                onClick={() => executeTrade("BUY")}
-              >
-                <Stack gap={0} align="flex-start">
-                  <Text size="xs" fw={600}>
-                    BUY
-                  </Text>
-
-                  <Text size="sm" fw={500}>
-                    {buyTotal.toFixed(2)}
-                  </Text>
-                </Stack>
-              </Button>
-
-              <Text size="xs" c="dimmed" ta="center">
-                {hasValidAmount
-                  ? `${tradeAmount} @ ${buyPrice}`
-                  : "Enter amount"}
-              </Text>
-            </Stack>
-
             {/* SELL */}
             <Stack
               gap={4}
@@ -274,6 +305,39 @@ export const Ticker = ({
               <Text size="xs" c="dimmed" ta="center">
                 {hasValidAmount
                   ? `${tradeAmount} @ ${sellPrice}`
+                  : "Enter amount"}
+              </Text>
+            </Stack>
+
+            {/* BUY */}
+            <Stack
+              gap={4}
+              align="stretch"
+              className={styles.executionButtonContainer}
+            >
+              <Button
+                color="green"
+                size="lg"
+                className={styles.executionButton}
+                fullWidth
+                disabled={!hasValidAmount || executingSide !== null}
+                loading={executingSide === "BUY"}
+                onClick={() => executeTrade("BUY")}
+              >
+                <Stack gap={0} align="flex-start">
+                  <Text size="xs" fw={600}>
+                    BUY
+                  </Text>
+
+                  <Text size="sm" fw={500}>
+                    {buyTotal.toFixed(2)}
+                  </Text>
+                </Stack>
+              </Button>
+
+              <Text size="xs" c="dimmed" ta="center">
+                {hasValidAmount
+                  ? `${tradeAmount} @ ${buyPrice}`
                   : "Enter amount"}
               </Text>
             </Stack>
