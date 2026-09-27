@@ -1,12 +1,6 @@
 export interface TickerData {
   ask: number;
   bid: number;
-  volume: string;
-  trade_id: number;
-  price: string;
-  size: string;
-  time: string;
-  rfq_volume: string;
   provider: string;
   updatedAt: number;
 }
@@ -18,6 +12,7 @@ export interface TickerProps {
   title: string;
   fullname: string;
   data?: TickerData;
+  connected?: boolean;
   onExecute: (
     symbol: string,
     side: TradeSide,
