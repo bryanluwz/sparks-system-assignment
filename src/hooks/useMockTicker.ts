@@ -42,7 +42,7 @@ export const useMockTicker = (symbols: string[]) => {
 
         return next;
       });
-    }, 10);
+    }, 100);
 
     return () => clearInterval(intervalId);
   }, [symbols]);
