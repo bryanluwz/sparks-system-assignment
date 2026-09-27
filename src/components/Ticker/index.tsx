@@ -14,16 +14,16 @@ import { notifications } from "@mantine/notifications";
 import { TickerProps, TradeSide } from "../../typings/component/Ticker";
 import styles from "./style.module.scss";
 import { LastUpdatedTimer } from "../LastUpdatedTimer";
-import React, { useEffect } from "react";
+import React, { memo } from "react";
 
-export const Ticker = ({
+const TickerComponent = ({
   symbol,
   title,
   fullname,
   data,
+  connected = true,
   onExecute,
 }: TickerProps) => {
-  const [now, setNow] = React.useState(Date.now());
   const [tradeAmount, setTradeAmount] = React.useState<number | string>(0);
   const [executingSide, setExecutingSide] = React.useState<TradeSide | null>(
     null,
@@ -38,15 +38,7 @@ export const Ticker = ({
   const currentBidRef = React.useRef<number>(0);
   const currentAskRef = React.useRef<number>(0);
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setNow(Date.now());
-    }, 250);
-
-    return () => clearInterval(intervalId);
-  }, []);
-
-  useEffect(() => {
+  React.useEffect(() => {
     if (!data) {
       return;
     }
@@ -70,7 +62,7 @@ export const Ticker = ({
     currentAskRef.current = data.ask;
   }, [data]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!priceFlash.bid && !priceFlash.ask) {
       return;
     }
@@ -85,23 +77,7 @@ export const Ticker = ({
     return () => clearTimeout(timeoutId);
   }, [priceFlash]);
 
-  const tickerStatus = React.useMemo(() => {
-    if (!data) {
-      return "LOADING";
-    }
-
-    if (!data.updatedAt) {
-      return "STALE";
-    }
-
-    const elapsed = now - data.updatedAt;
-
-    if (elapsed > 5000) {
-      return "STALE";
-    }
-
-    return "LIVE";
-  }, [data, now]);
+  const tickerStatus = !data ? "LOADING" : connected ? "LIVE" : "STALE";
 
   const tickerTimer = (
     <Badge
@@ -347,3 +323,5 @@ export const Ticker = ({
     </Container>
   );
 };
+
+export default memo(TickerComponent);

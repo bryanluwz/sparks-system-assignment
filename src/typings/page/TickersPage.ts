@@ -1,7 +1,12 @@
-import { TickerData, TickerProps, TradeSide } from "../component/Ticker";
+import {
+  TickerConfig,
+  TickerData,
+  TickerProps,
+  TradeSide,
+} from "../component/Ticker";
 
 export interface TickersPageProps {
-  tickerSymbols: Omit<TickerProps, "data" | "onExecute">[];
+  tickerSymbols: TickerConfig[];
   tickers: Record<string, TickerData>;
   onExecute: (
     symbol: string,

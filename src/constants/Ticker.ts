@@ -1,6 +1,6 @@
 import { TickerConfig } from "../typings/component/Ticker";
 
-export const AVAILABLE_TICKERS: TickerConfig[] = [
+const AVAILABLE_TICKERS: TickerConfig[] = [
   // Major
   {
     symbol: "BTC-USD",
@@ -112,18 +112,19 @@ export const AVAILABLE_TICKERS: TickerConfig[] = [
     fullname: "Polygon",
     source: "coinbase",
   },
+];
 
-  // Mock
-  {
-    symbol: "FAKE-1",
-    title: "FAKE-1/USD",
-    fullname: "Fake Asset 1",
-    source: "mock",
-  },
-  {
-    symbol: "FAKE-2",
-    title: "FAKE-2/USD",
-    fullname: "Fake Asset 2",
-    source: "mock",
-  },
+const MOCK_TICKERS: TickerConfig[] = Array.from(
+  { length: 100 },
+  (_, index) => ({
+    symbol: `FAKE-${index + 1}`,
+    title: `FAKE-${index + 1}/USD`,
+    fullname: `Fake Asset ${index + 1}`,
+    source: "mock" as const,
+  }),
+);
+
+export const ALL_AVAILABLE_TICKERS: TickerConfig[] = [
+  ...AVAILABLE_TICKERS,
+  ...MOCK_TICKERS,
 ];

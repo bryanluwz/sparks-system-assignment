@@ -3,9 +3,10 @@ import styles from "./style.module.scss";
 import { TickersPage } from "./TickersPage";
 import { useCoinbaseTicker } from "../hooks/useCoinbaseTicker";
 import { postExecute } from "../apis/Tickers/apis";
-import { AVAILABLE_TICKERS } from "../constants/Ticker";
+import { ALL_AVAILABLE_TICKERS } from "../constants/Ticker";
 import { TickerSidebar } from "../components/TickerSidebar";
 import { Button, Flex, Stack } from "@mantine/core";
+import { useMockTicker } from "../hooks/useMockTicker";
 
 export const App = () => {
   const [sidebarOpened, setSidebarOpened] = React.useState(false);
@@ -41,7 +42,7 @@ export const App = () => {
     );
   };
 
-  const subscribedTickers = AVAILABLE_TICKERS.filter((ticker) =>
+  const subscribedTickers = ALL_AVAILABLE_TICKERS.filter((ticker) =>
     subscribedSymbols.includes(ticker.symbol),
   );
 
@@ -49,14 +50,25 @@ export const App = () => {
     .filter((ticker) => ticker.source === "coinbase")
     .map((ticker) => ticker.symbol);
 
-  const { tickers } = useCoinbaseTicker(realSymbols);
+  const mockSymbols = subscribedTickers
+    .filter((ticker) => ticker.source === "mock")
+    .map((ticker) => ticker.symbol);
+
+  const { tickers: coinbaseTickers } = useCoinbaseTicker(realSymbols);
+
+  const { tickers: mockTickers } = useMockTicker(mockSymbols);
+
+  const tickers = {
+    ...coinbaseTickers,
+    ...mockTickers,
+  };
 
   return (
     <>
       <TickerSidebar
         opened={sidebarOpened}
         onClose={() => setSidebarOpened(false)}
-        availableTickers={AVAILABLE_TICKERS}
+        availableTickers={ALL_AVAILABLE_TICKERS}
         subscribedSymbols={subscribedSymbols}
         onToggleSubscription={toggleSubscription}
       />

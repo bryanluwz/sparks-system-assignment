@@ -1,6 +1,7 @@
 import { SimpleGrid } from "@mantine/core";
-import { Ticker } from "../../components/Ticker";
+import Ticker from "../../components/Ticker";
 import { TickersPageProps } from "../../typings/page/TickersPage";
+import React from "react";
 
 export const TickersPage = ({
   tickerSymbols,
